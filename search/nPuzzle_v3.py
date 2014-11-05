@@ -1,18 +1,6 @@
 from util import PriorityQueue
 import timeit
 
-class Actions:
-    def __init__(self):
-        self.dict = {};
-    def __init__(self,state):
-        (self.x,self.y) = state
-        self.dict = {'LEFT':(self.x-1, self.y),'RIGHT':(self.x+1, self.y),
-                     'UP':(self.x,self.y+1),'DOWN':(self.x,self.y-1)};
-    def __getattr__(self, attr):
-        return self.dict[attr];
-    def setState(self,state):
-        self.__init__(state)
-
 def getStateVal(zeroPos, valPos, val):
     (zx,zy) = zeroPos
     (x,y) = valPos
@@ -64,18 +52,11 @@ def getSuccessors(state,r,c):
     return successors;
 
 
-def isGoalState(state):
-#     sum = 0
-    (gridState, zeroPos, stateVal) = state
+def isGoalState(stateVal):
     return stateVal == 0
-#     for i in xrange(0,r):
-#         for j in xrange(0,c):
-#            sum = sum + abs(goalState[i][j] - gridState[i][j]) 
-#     return sum == 0
 
-def getHeuristic(state,r,c):
+def getHeuristic(gridState,r,c):
     sum = 0
-    (gridState,zeroPos,stateVal) = state
     for i in xrange(0,r):
         for j in xrange(0,c):
             ii = (gridState[i][j]/c);
@@ -85,8 +66,8 @@ def getHeuristic(state,r,c):
             sum = sum + md; 
     return sum
 
-def getCost(state,oldCost):
-    if (state[2] == 0):
+def getCost(stateVal,oldCost):
+    if (stateVal == 0):
         return oldCost
     return oldCost + 1
 
@@ -94,7 +75,7 @@ def inMarked(state,marked,r,c):
     (gridState,zeroPos,stateVal) = state;
     for k in xrange(0,len(marked)):
         (markedState,markedZeroPos,markedStateVal) = marked[k];
-        if (markedStateVal == stateVal):
+        if (markedStateVal == stateVal and (zeroPos == markedZeroPos)):
             matched = True;
             for i in xrange(0,r):
                 for j in xrange(0,c):
@@ -116,7 +97,7 @@ def nextMove(state,r,c):
     oldCost = 0
     fringe.push((path,state),oldCost);
     marked.append(state)
-    while(not isGoalState(state)):
+    while(not isGoalState(state[2])):
         succs = getSuccessors(state,r,c);
         if (len(succs) > 0):
             for succ in succs:
@@ -124,7 +105,7 @@ def nextMove(state,r,c):
                 (action,childState) = succ;
                 if (not inMarked(childState,marked,r,c)):
                     childPath.append(action);
-                    cost = getCost(state,oldCost) + getHeuristic(childState,r,c);
+                    cost = getCost(state[2],oldCost) + getHeuristic(childState[0],r,c);
                     fringe.push((childPath,childState),cost);
                     marked.append(childState);
         else:
@@ -148,7 +129,6 @@ for i in xrange(0, m):
         if (cols[j] == 0):
             zeroPos = (j,i)
     grid.append(cols)
-
 r = len(grid);
 c = len(grid[0]);
 tempGoalState = [];
